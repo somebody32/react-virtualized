@@ -1,0 +1,15 @@
+.wrapper {
+  width: 300px;
+  height: 500px;
+  background-color: white;
+}
+
+.col {
+  height: 100%;
+  border: 1px solid rgb(246, 246, 246);
+}
+
+.row {
+  height: 100%;
+  border: 1px solid pink;
+}
