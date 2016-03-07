@@ -4,6 +4,26 @@
   background-color: white;
 }
 
+.grid_wrapper {
+  position: relative;
+  overflow: scroll;
+}
+
+.innerWrapper {
+  position: relative;
+}
+
+.scroller {
+  overflow: hidden;
+}
+
+.gridStyle {
+  overflow: hidden !important;
+  position: absolute !important;
+  top: 0;
+  left: 0;
+}
+
 .col {
   height: 100%;
   border: 1px solid rgb(246, 246, 246);
