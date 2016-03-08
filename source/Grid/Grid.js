@@ -213,16 +213,20 @@ export default class Grid extends Component {
     }
 
     if (scrollToColumn >= 0 || scrollToRow >= 0) {
-      // Without setImmediate() the initial scrollingContainer.scrollTop assignment doesn't work
-      this._setImmediateId = setImmediate(() => {
-        this._setImmediateId = null
-        this._updateScrollLeftForScrollToColumn()
-        this._updateScrollTopForScrollToRow()
-      })
+      this._updateScrollLeftForScrollToColumn()
+      this._updateScrollTopForScrollToRow()
     }
 
     // Update onRowsRendered callback
     this._invokeOnGridRenderedHelper()
+
+    // Initialize onScroll callback
+    this._invokeOnScrollMemoizer({
+      scrollLeft: scrollLeft || 0,
+      scrollTop: scrollTop || 0,
+      totalColumnsWidth: this._getTotalColumnsWidth(),
+      totalRowsHeight: this._getTotalRowsHeight()
+    })
   }
 
   componentDidUpdate (prevProps, prevState) {
@@ -292,10 +296,6 @@ export default class Grid extends Component {
   componentWillUnmount () {
     if (this._disablePointerEventsTimeoutId) {
       clearTimeout(this._disablePointerEventsTimeoutId)
-    }
-
-    if (this._setImmediateId) {
-      clearImmediate(this._setImmediateId)
     }
 
     if (this._setNextStateAnimationFrameId) {
@@ -607,6 +607,27 @@ export default class Grid extends Component {
     })
   }
 
+  _invokeOnScrollMemoizer ({ scrollLeft, scrollTop, totalColumnsWidth, totalRowsHeight }) {
+    const { height, onScroll, width } = this.props
+
+    this._onScrollMemoizer({
+      callback: ({ scrollLeft, scrollTop }) => {
+        onScroll({
+          clientHeight: height,
+          clientWidth: width,
+          scrollHeight: totalRowsHeight,
+          scrollLeft,
+          scrollTop,
+          scrollWidth: totalColumnsWidth
+        })
+      },
+      indices: {
+        scrollLeft,
+        scrollTop
+      }
+    })
+  }
+
   /**
    * Updates the state during the next animation frame.
    * Use this method to avoid multiple renders in a small span of time.
@@ -774,7 +795,7 @@ export default class Grid extends Component {
     // Gradually converging on a scrollTop that is within the bounds of the new, smaller height.
     // This causes a series of rapid renders that is slow for long lists.
     // We can avoid that by doing some simple bounds checking to ensure that scrollTop never exceeds the total height.
-    const { height, onScroll, width } = this.props
+    const { height, width } = this.props
     const totalRowsHeight = this._getTotalRowsHeight()
     const totalColumnsWidth = this._getTotalColumnsWidth()
     const scrollLeft = Math.min(totalColumnsWidth - width, event.target.scrollLeft)
@@ -810,21 +831,6 @@ export default class Grid extends Component {
       })
     }
 
-    this._onScrollMemoizer({
-      callback: ({ scrollLeft, scrollTop }) => {
-        onScroll({
-          clientHeight: height,
-          clientWidth: width,
-          scrollHeight: totalRowsHeight,
-          scrollLeft,
-          scrollTop,
-          scrollWidth: totalColumnsWidth
-        })
-      },
-      indices: {
-        scrollLeft,
-        scrollTop
-      }
-    })
+    this._invokeOnScrollMemoizer({ scrollLeft, scrollTop, totalColumnsWidth, totalRowsHeight })
   }
 }
