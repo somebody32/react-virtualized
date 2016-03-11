@@ -144,6 +144,8 @@ export default class Grid extends Component {
       scrollTop: 0
     }
 
+    this.child_cache = {};
+
     // Invokes onSectionRendered callback only when start/stop row or column indices change
     this._onGridRenderedMemoizer = createCallbackMemoizer()
     this._onScrollMemoizer = createCallbackMemoizer(false)
@@ -425,8 +427,15 @@ export default class Grid extends Component {
 
         for (let columnIndex = this._columnStartIndex; columnIndex <= this._columnStopIndex; columnIndex++) {
           let columnDatum = this._columnMetadata[columnIndex]
-          let renderedCell = renderCell({ columnIndex, rowIndex })
+
           let key = `${rowIndex}-${columnIndex}`
+          let renderedCell;
+          if (this.child_cache[key]) {
+            renderedCell = this.child_cache[key]
+          } else {
+            renderedCell = renderCell({ columnIndex, rowIndex })
+            this.child_cache[key] = renderedCell
+          }
           let child = (
             <div
               key={key}
@@ -509,6 +518,13 @@ export default class Grid extends Component {
       cellsCount: rowsCount,
       size: rowHeight
     })
+  }
+
+  _cacheMemoizer(row, column, value) {
+    if (!this.child_cache[row]) {
+      this.child_cache[row] = [];
+    }
+    this.child_cache[row][column] = value;
   }
 
   /**
