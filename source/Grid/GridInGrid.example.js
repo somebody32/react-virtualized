@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import raf from 'raf';
 import { ContentBox, ContentBoxHeader, ContentBoxParagraph } from '../demo/ContentBox'
 import AutoSizer from '../AutoSizer';
 import Grid from './Grid';
@@ -27,7 +28,7 @@ export default class GridInGridExample extends Component {
     super()
     this.renderCol = this.renderCol.bind(this);
     this.renderRow = this.renderRow.bind(this);
-    this.position = {gridLeft: 0, gridTop: 0};
+    this.syncScroll = this.syncScroll.bind(this);
   }
 
   renderCol({columnIndex}) {
@@ -41,6 +42,11 @@ export default class GridInGridExample extends Component {
     return <div onClick={() => console.log('clicked')} className={styles.row} style={{transform, width}} />
   }
 
+  syncScroll({target}, onScroll) {
+    if (this.wrapper !== target) return;
+    onScroll(target);
+  }
+
   render() {
     return (
       <div className={styles.wrapper}>
@@ -52,20 +58,14 @@ export default class GridInGridExample extends Component {
                   ref={(node) => this.wrapper = node}
                   style={{height, width}}
                   className={styles.grid_wrapper}
-                  onScroll={
-                    (event) => {
-                      if (this.wrapper !== event.target) return;
-                      onScroll({ scrollLeft: event.target.scrollLeft, scrollTop: event.target.scrollTop })
-                      this.position = {gridTop: event.target.scrollTop, gridLeft: event.target.scrollLeft};
-                    }
-                  }
+                  onScroll={(event) => this.syncScroll(event, onScroll)}
                 >
                   <div
                     style={{height: grid_height, width: grid_width}}
                     className={styles.scroller}
                     >
                     <div
-                      style={{top: this.position.gridTop, left: this.position.gridLeft}}
+                      style={{top: scrollTop, left: scrollLeft}}
                       className={styles.innerWrapper}
                     >
                       <Grid

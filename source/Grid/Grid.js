@@ -492,7 +492,6 @@ export default class Grid extends Component {
             }}
           >
             {childrenToDisplay}
-            {this.props.children}
           </div>
         }
         {childrenToDisplay.length === 0 &&
